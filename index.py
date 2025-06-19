@@ -41,9 +41,16 @@ def update_user(user_id, name, email, age):
         """, (name, email, age, user_id))
         conn.commit()
 
+def delete_user(user_id):
+    with sqlite3.connect('database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+
 init_db()
-# add_user('Mario', 'mario@correo.com', 32)
-user = get_user_by_id(2)
+add_user('Mario', 'mario@correo.com', 32)
+users = get_users()
+user = get_user_by_id(users[0][0])
 print(user)
-update_user(2, 'Luigi', 'luigi@correo.com', 35)
-print(get_users())
+update_user(users[0][0], 'Luigi', 'luigi@correo.com', 35)
+delete_user(users[0][0])
