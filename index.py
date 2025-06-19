@@ -1,4 +1,11 @@
 import sqlite3
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/hello', methods=['GET'])
+def hello():
+    return "Hola desde Flask!"
 
 def init_db():
     with sqlite3.connect('database.db') as conn:
@@ -47,10 +54,6 @@ def delete_user(user_id):
         cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
 
-init_db()
-add_user('Mario', 'mario@correo.com', 32)
-users = get_users()
-user = get_user_by_id(users[0][0])
-print(user)
-update_user(users[0][0], 'Luigi', 'luigi@correo.com', 35)
-delete_user(users[0][0])
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)
