@@ -3,10 +3,34 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/hello', methods=['GET'])
-def hello():
-    return "Hola desde Flask!"
+# Pruebas API
+@app.route('/hello/<name>', methods=['GET']) # Path parameter
+def hello(name):
+    return f"Hola {name} desde Flask!"
 
+@app.route('/', methods=['GET'])
+def test():
+    return jsonify({"message": "¡API Funcionando!"})
+
+@app.route('/filtro', methods=['GET'])
+def filtro():
+    city = request.args.get('city')  # Query parameter
+    department = request.args.get('department')  # Query parameter
+    # Agregar 2 parametros mas
+    return jsonify({
+        "message": "Filtro aplicado!",
+        "city": city,
+        "department": department
+    })
+
+@app.route('/enviar', methods=['DELETE'])
+def enviar():
+    # data = request.json
+    # Aquí puedes implementar la lógica para procesar los datos recibidos
+    return jsonify({"message": "Datos recibidos!"})
+
+#------------------------------------------------#
+# Base de datos
 def init_db():
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
