@@ -23,11 +23,11 @@ def filtro():
         "department": department
     })
 
-@app.route('/enviar', methods=['DELETE'])
+@app.route('/enviar', methods=['POST'])
 def enviar():
-    # data = request.json
+    data = request.json # Body parameter
     # Aquí puedes implementar la lógica para procesar los datos recibidos
-    return jsonify({"message": "Datos recibidos!"})
+    return jsonify({"message": "Datos recibidos!", "data": data})
 
 #------------------------------------------------#
 # Base de datos
@@ -44,39 +44,76 @@ def init_db():
         """)
         conn.commit()
 
-def add_user(name, email, age):
+# WS Agregar usuario
+@app.route('/users', methods=['POST'])
+def add_user():
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    age = data.get('age')
+
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO users (name, email, age) VALUES (?, ?, ?)
         """, (name, email, age))
         conn.commit()
+    
+    user = {"id": cursor.lastrowid, "name": name, "email": email, "age": age}        
+    return jsonify({"message": "Usuario agregado exitosamente!", "user": user}), 201
 
+# WS Obtener todos los usuarios
+@app.route('/users', methods=['GET'])
 def get_users():
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users")
-        return cursor.fetchall()
+        users = cursor.fetchall()
+    
+    data = [{"id": user[0], "name": user[1], "email": user[2], "age": user[3]} for user in users]
+    return jsonify(data)
 
+# WS Obtener usuario por ID
+@app.route('/users/<int:user_id>', methods=['GET'])
 def get_user_by_id(user_id):
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-        return cursor.fetchone()
+        user = cursor.fetchone()
 
-def update_user(user_id, name, email, age):
+    if user:
+        data = {"id": user[0], "name": user[1], "email": user[2], "age": user[3]}
+        return jsonify(data)
+    else:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+# WS Actualizar usuario
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    age = data.get('age')
+    
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE users SET name = ?, email = ?, age = ? WHERE id = ?
         """, (name, email, age, user_id))
         conn.commit()
+    
+    user = {"id": user_id, "name": name, "email": email, "age": age}
+    return jsonify({"message": "Usuario actualizado exitosamente!", "user": user}), 200
 
+# WS Eliminar usuario
+@app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     with sqlite3.connect('database.db') as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
+
+    return jsonify({"message": "Usuario eliminado exitosamente!"}), 200
 
 if __name__ == '__main__':
     init_db()
